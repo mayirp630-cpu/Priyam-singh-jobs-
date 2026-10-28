@@ -71,9 +71,7 @@ button,.button{border:0;border-radius:8px;background:var(--blue);color:white;pad
   </section>
 </main>
 <footer>Priyam Singh Jobs • Verify employer details before sharing personal documents or paying any fee.</footer>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<!-- Firebase libraries are loaded sequentially below to avoid timing issues. -->
 <script>
 'use strict';
 // Public Firebase web configuration supplied for this website.
@@ -231,7 +229,22 @@ function resetForm(){
   $("saveBtn").textContent="Publish job"; $("cancelEditBtn").classList.add("hidden");
 }
 $("cancelEditBtn").addEventListener("click",resetForm);
-initFirebase();
+async function loadFirebaseLibrary(src){
+  await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=()=>reject(new Error('Could not load Firebase library: '+src));document.head.appendChild(s);});
+}
+async function startFirebaseSafely(){
+  try {
+    await loadFirebaseLibrary('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
+    await loadFirebaseLibrary('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js');
+    await loadFirebaseLibrary('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js');
+    initFirebase();
+  } catch(e) {
+    setStatus('loadStatus','Firebase library could not load. Check internet connection and refresh. '+e.message,true);
+    setStatus('authStatus','Firebase did not load, so login is unavailable.',true);
+    $('loginBtn').disabled=true;
+  }
+}
+startFirebaseSafely();
 </script>
 </body>
-  </html>
+</html>
